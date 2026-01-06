@@ -175,8 +175,13 @@ export default function App() {
       if (!canvas) return;
       const parent = canvas.parentElement;
       const ratio = window.devicePixelRatio || 1;
-      const width = Math.max(640, parent.clientWidth - 32);
-      const height = Math.max(480, Math.round((width * 3) / 4));
+      const width = Math.floor(parent.clientWidth - (window.innerWidth < 640 ? 0 : 32));
+      // Calculate available height: Window height - HUD height (approx) - padding
+      // On mobile HUD is top bar (approx 60px), on desktop it's sidebar (full height)
+      const hudHeight = window.innerWidth < 768 ? 80 : 40;
+      const availableHeight = window.innerHeight - hudHeight;
+      const height = Math.min(Math.round((width * 3) / 4), availableHeight);
+
       canvas.width = Math.floor(width * ratio);
       canvas.height = Math.floor(height * ratio);
       canvas.style.width = width + "px";
@@ -770,7 +775,7 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-2 sm:p-6 bg-gradient-to-br from-gray-950 to-slate-900 font-sans mobile-friendly">
+    <div className="h-screen w-full overflow-hidden bg-gradient-to-br from-gray-950 to-slate-900 font-sans mobile-friendly flex flex-col md:items-center md:justify-center md:p-6">
       {/* Modals */}
       {showSettings && <SettingsModal />}
       {showHelp && (
@@ -795,10 +800,10 @@ export default function App() {
         </div>
       )}
 
-      <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="w-full h-full max-w-5xl flex flex-col md:grid md:grid-cols-3 gap-0 md:gap-6">
 
         {/* Main Game Area */}
-        <div className="md:col-span-2 relative bg-gray-900 rounded-2xl shadow-2xl border border-gray-800 overflow-hidden ring-4 ring-gray-800/50">
+        <div className="order-2 md:order-1 md:col-span-2 relative bg-gray-900 rounded-2xl shadow-2xl border border-gray-800 overflow-hidden ring-4 ring-gray-800/50">
 
           {/* Overlays */}
           {gameState === GAME_STATE.MENU && <MainMenu />}
@@ -807,55 +812,67 @@ export default function App() {
           {gameState === GAME_STATE.TRANSITION && <LevelTransition />}
 
           {/* Canvas */}
-          <canvas ref={canvasRef} className="block w-full h-full bg-gray-950" />
+          <canvas ref={canvasRef} className="block w-full h-full bg-gray-950 touch-none" />
 
         </div>
 
-        {/* Sidebar HUD */}
-        <aside className="bg-gray-800/50 backdrop-blur-md rounded-2xl p-6 border border-gray-700 shadow-xl flex flex-col gap-6 h-fit">
+        {/* Responsive HUD */}
+        <aside className="order-1 md:order-2 shrink-0 bg-gray-900/90 md:bg-gray-800/50 backdrop-blur-md md:rounded-2xl p-2 md:p-6 border-b md:border border-gray-700 shadow-xl flex flex-row md:flex-col justify-around md:justify-start items-center md:items-stretch gap-2 md:gap-6 h-14 md:h-fit z-10 w-full">
 
-          <div className="flex flex-col gap-4">
-            <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-700/50">
-              <div className="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-1">Score</div>
-              <div className="text-4xl font-mono text-white tracking-tight">{score}</div>
+          <div className="flex md:flex-col items-center gap-4 md:gap-4 w-full justify-between md:justify-start">
+
+            {/* Score */}
+            <div className="bg-transparent md:bg-gray-900/50 p-0 md:p-4 rounded-xl border-0 md:border border-gray-700/50 flex flex-col items-center">
+              <div className="text-[10px] md:text-xs font-bold text-emerald-500 uppercase tracking-wider mb-0 md:mb-1">Score</div>
+              <div className="text-xl md:text-4xl font-mono text-white tracking-tight leading-none">{score}</div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-700/50">
-                <div className="text-xs font-bold text-pink-500 uppercase tracking-wider mb-1 flex items-center gap-1"><Heart size={12} fill="currentColor" /> Lives</div>
-                <div className="text-2xl font-mono text-white">{lives}</div>
+            <div className="flex gap-4 md:grid md:grid-cols-2 md:w-full">
+              {/* Lives */}
+              <div className="bg-transparent md:bg-gray-900/50 p-0 md:p-3 rounded-xl border-0 md:border border-gray-700/50 flex flex-col items-center">
+                <div className="text-[10px] md:text-xs font-bold text-pink-500 uppercase tracking-wider mb-0 md:mb-1 flex items-center gap-1"><Heart className="w-3 h-3" fill="currentColor" /> <span className="hidden md:inline">Lives</span></div>
+                <div className="text-lg md:text-2xl font-mono text-white leading-none">{lives}</div>
               </div>
-              <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-700/50">
-                <div className="text-xs font-bold text-cyan-500 uppercase tracking-wider mb-1 flex items-center gap-1"><Activity size={12} /> Level</div>
-                <div className="text-2xl font-mono text-white">{level}</div>
+              {/* Level */}
+              <div className="bg-transparent md:bg-gray-900/50 p-0 md:p-3 rounded-xl border-0 md:border border-gray-700/50 flex flex-col items-center">
+                <div className="text-[10px] md:text-xs font-bold text-cyan-500 uppercase tracking-wider mb-0 md:mb-1 flex items-center gap-1"><Activity className="w-3 h-3" /> <span className="hidden md:inline">Level</span></div>
+                <div className="text-lg md:text-2xl font-mono text-white leading-none">{level}</div>
               </div>
             </div>
+
+            {/* Controls (Mobile Only) */}
+            <div className="flex md:hidden gap-2">
+              <button onClick={() => setPaused(!isPaused)} className="p-2 bg-gray-700 rounded text-white">
+                {isPaused ? <Play size={16} fill="white" /> : <Pause size={16} fill="white" />}
+              </button>
+              <button onClick={() => setShowSettings(true)} className="p-2 bg-gray-700 rounded text-white">
+                <Settings size={16} />
+              </button>
+            </div>
+
           </div>
 
-          <div className="border-t border-gray-700 pt-6">
-            <div className="flex gap-2 mb-4">
-              <button onClick={() => setPaused(gameState === GAME_STATE.PLAYING)} disabled={gameState !== GAME_STATE.PLAYING && gameState !== GAME_STATE.PAUSED}
-                className="flex-1 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-semibold transition-colors disabled:opacity-50 flex justify-center items-center gap-2">
-                {gameState === GAME_STATE.PAUSED ? <Play size={18} /> : <Pause size={18} />}
-                {gameState === GAME_STATE.PAUSED ? "Resume" : "Pause"}
+          <div className="hidden md:block border-t border-gray-700 pt-6">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPaused(!isPaused)}
+                className={`flex-1 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${isPaused ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-200'}`}
+              >
+                {isPaused ? <><Play size={18} fill="currentColor" /> Resume</> : <><Pause size={18} fill="currentColor" /> Pause</>}
               </button>
               <button onClick={() => setShowSettings(true)} className="p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition-colors">
                 <Settings size={20} />
               </button>
             </div>
 
-            <div className="text-xs text-center text-gray-500">
+            <div className="text-xs text-center text-gray-500 mt-4">
               High Score: <span className="text-gray-300 font-bold">{storage.highScore}</span>
             </div>
           </div>
 
-          <div className="mt-auto pt-6 border-t border-gray-700">
-            <div className="text-xs text-gray-500 leading-relaxed text-center">
-              Controls: Mouse/Touch to move.<br />Tap to launch.
-            </div>
-          </div>
         </aside>
-      </div>
-    </div>
+
+      </div >
+    </div >
   );
 }
