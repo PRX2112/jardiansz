@@ -59,8 +59,9 @@ export default function App() {
   function resetField(nextLevel = 1) {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const W = canvas.width;
-    const H = canvas.height;
+    const rect = canvas.getBoundingClientRect();
+    const W = rect.width;
+    const H = rect.height;
 
     // paddle
     const paddle = {
