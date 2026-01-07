@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { useSound } from "./hooks/useSound";
 import { Settings, Play, Pause, RotateCcw, Volume2, VolumeX, HelpCircle, X, Trophy, Heart, Activity } from "lucide-react";
 
-// Jardinains - Single-file React component
+// BrickBloom - Single-file React component
 // Default export a React component (App) ready to drop into a React project.
 // Uses Tailwind classes for UI. Stores high score + settings in localStorage (no backend).
 
@@ -466,7 +466,8 @@ export default function App() {
         soundsRef.current.playPowerUp();
         if (p.kind === "enlarge") {
           s.paddle.w = Math.min(s.W - 40, s.paddle.w * 1.4);
-        } else if (p.kind === "sticky") {
+         } else if (p.kind === "sticky") {
+          s.paddle.sticky = true;
           setTimeout(() => {
             s.paddle.sticky = false;
           }, 10000);
@@ -711,7 +712,7 @@ export default function App() {
   const MainMenu = () => (
     <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 backdrop-blur-sm z-20">
       <h1 className="text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-500 mb-8 drop-shadow-lg">
-        Jardinains
+        BrickBloom
       </h1>
       <button onClick={() => startGame(1)} className="group relative px-8 py-4 bg-emerald-500 hover:bg-emerald-600 rounded-xl font-bold text-xl text-white shadow-xl transition-all hover:scale-105 active:scale-95">
         <span className="flex items-center gap-2"><Play fill="currentColor" /> Play Game</span>
