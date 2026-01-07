@@ -86,16 +86,28 @@ export default function App() {
 
     // bricks layout: rows x cols
     const rows = 4 + Math.min(6, nextLevel); // ramp up rows by level
-    const cols = 8;
-    const brickW = Math.floor((W - 80) / cols);
+
+    // Responsive brick layout
+    // Use fewer columns on very narrow screens (< 400px)
+    const cols = W < 400 ? 5 : 8;
+
+    // Dynamic padding: smaller on mobile
+    const paddingX = W < 600 ? 10 : 40;
+    const spacing = 6;
+
+    // Calculate brick width to fill available space
+    const totalSpacing = (cols - 1) * spacing;
+    const availableWidth = W - (paddingX * 2);
+    const brickW = Math.floor((availableWidth - totalSpacing) / cols);
+
     const bricks = [];
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         // create some variety
         const hp = 1 + Math.floor((r + c + nextLevel) / 8);
         bricks.push({
-          x: 40 + c * (brickW + 6),
-          y: 60 + r * 28,
+          x: paddingX + c * (brickW + spacing),
+          y: (W < 600 ? 50 : 60) + r * 28, // Shift up slightly on mobile
           w: brickW,
           h: 22,
           hp,
@@ -178,9 +190,16 @@ export default function App() {
       const width = Math.floor(parent.clientWidth - (window.innerWidth < 640 ? 0 : 32));
       // Calculate available height: Window height - HUD height (approx) - padding
       // On mobile HUD is top bar (approx 60px), on desktop it's sidebar (full height)
-      const hudHeight = window.innerWidth < 768 ? 80 : 40;
+      const hudHeight = window.innerWidth < 768 ? 64 : 40;
       const availableHeight = window.innerHeight - hudHeight;
-      const height = Math.min(Math.round((width * 3) / 4), availableHeight);
+
+      // On mobile, use full height. On desktop, maintain aspect ratio.
+      let height;
+      if (window.innerWidth < 768) {
+        height = availableHeight;
+      } else {
+        height = Math.min(Math.round((width * 3) / 4), availableHeight);
+      }
 
       canvas.width = Math.floor(width * ratio);
       canvas.height = Math.floor(height * ratio);
@@ -622,7 +641,7 @@ export default function App() {
     // small footer
     ctx.font = "12px sans-serif";
     ctx.fillStyle = "#084c61";
-    ctx.fillText("Jardinains — gnomes + flowerpots! (localStorage highscore)", 16, H - 8);
+    ctx.fillText("Happy Playing", 16, H - 8);
   }
 
 
