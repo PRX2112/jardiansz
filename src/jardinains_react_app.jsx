@@ -55,6 +55,12 @@ export default function App() {
   // Game state refs for performance
   const stateRef = useRef({});
 
+  // Ref to hold stable state values for the render loop and logic
+  const gameDataRef = useRef({ score, lives, storage });
+  useEffect(() => {
+    gameDataRef.current = { score, lives, storage };
+  }, [score, lives, storage]);
+
   // Init or reset the playfield
   function resetField(nextLevel = 1) {
     const canvas = canvasRef.current;
@@ -154,8 +160,9 @@ export default function App() {
     setGameState(GAME_STATE.GAMEOVER);
     setIsRunning(false); // stop loop
     // update highscore
-    if (score > storage.highScore) {
-      const newStorage = { ...storage, highScore: score };
+    const { score: currentScore, storage: currentStorage } = gameDataRef.current;
+    if (currentScore > currentStorage.highScore) {
+      const newStorage = { ...currentStorage, highScore: currentScore };
       setStorage(newStorage);
       saveStorage(newStorage);
     }
@@ -367,16 +374,7 @@ export default function App() {
           // game over
           s.shake = 20;
           soundsRef.current.playGameOver();
-          // game over
-          s.shake = 20;
-          soundsRef.current.playGameOver();
           endGame(); // State change
-          // update highscore
-          if (score > storage.highScore) {
-            const newStorage = { ...storage, highScore: score };
-            setStorage(newStorage);
-            saveStorage(newStorage);
-          }
         } else {
           // respawn ball
           s.balls.push({
@@ -466,7 +464,7 @@ export default function App() {
         soundsRef.current.playPowerUp();
         if (p.kind === "enlarge") {
           s.paddle.w = Math.min(s.W - 40, s.paddle.w * 1.4);
-         } else if (p.kind === "sticky") {
+        } else if (p.kind === "sticky") {
           s.paddle.sticky = true;
           setTimeout(() => {
             s.paddle.sticky = false;
@@ -635,9 +633,12 @@ export default function App() {
     // HUD
     ctx.fillStyle = "#0f172a";
     ctx.font = "16px ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial";
-    ctx.fillText(`Score: ${score}`, 16, 24);
-    ctx.fillText(`High: ${storage.highScore}`, 16, 44);
-    ctx.fillText(`Lives: ${lives}`, W - 140, 24);
+
+    const { score: currentScore, lives: currentLives, storage: currentStorage } = gameDataRef.current;
+
+    ctx.fillText(`Score: ${currentScore}`, 16, 24);
+    ctx.fillText(`High: ${currentStorage.highScore}`, 16, 44);
+    ctx.fillText(`Lives: ${currentLives}`, W - 140, 24);
     ctx.fillText(`Level: ${s.level}`, W - 140, 44);
 
     // small footer
