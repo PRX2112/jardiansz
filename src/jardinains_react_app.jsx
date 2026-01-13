@@ -62,7 +62,7 @@ export default function App() {
   }, [score, lives, storage]);
 
   // Init or reset the playfield
-  function resetField(nextLevel = 1) {
+  function resetField(nextLevel = 1, preserveScore = false) {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
@@ -143,8 +143,10 @@ export default function App() {
       shake: 0,
     };
 
-    setScore(0);
-    setLives(3);
+    if (!preserveScore) {
+      setScore(0);
+      setLives(3);
+    }
     setLevel(nextLevel);
   }
 
@@ -180,7 +182,7 @@ export default function App() {
     soundsRef.current.playLevelComplete();
     setTimeout(() => {
       const nl = level + 1;
-      resetField(nl);
+      resetField(nl, true); // Preserve score during level transition
       setLevel(nl);
       setLives((l) => Math.min(9, l + 1));
       setScore((sc) => sc + nl * 50);
